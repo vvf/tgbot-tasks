@@ -16,6 +16,10 @@ class Task(db.Model):
     message_id = db.Column(db.String(128), default='', index=True)
     last_notify_id = db.Column(db.String(128), default='', index=True)
     period_days = db.Column(db.Integer, default=1)
-    last_done_time = db.Column(db.DateTime(), default=now_plus_day)
+    last_done_time = db.Column(db.DateTime(), default=datetime.now)
     notify_time = db.Column(db.DateTime(), default=now_plus_day)
+    exact_in_time = db.Column(db.Boolean, default=False, server_default='false')
     done_mark_user_id = db.Column(db.String(128), default='', index=True)
+
+    def __str__(self):
+        return self.content

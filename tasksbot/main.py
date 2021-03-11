@@ -7,6 +7,7 @@ from aiotg import run_with_reloader
 
 from tasksbot.bot import bot
 from tasksbot.database import db
+from tasksbot.reminder import reminder_loop
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,7 @@ AIOHTTP_23 = aiohttp.__version__ > "2.3"
 
 async def bot_loop():
     async with db.with_bind(DB_URL):
+        reminder_loop()
         return await bot.loop()
 
 
