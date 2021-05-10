@@ -187,7 +187,17 @@ async def callback_mark_task_as_done(chat: aiotg.Chat, cb: aiotg.CallbackQuery, 
     ).apply()
     text = f'Задача "{task.content}" отмечена как выполнена. ' \
            f'Следующий раз напомню через {task.period_days} {plural_days(task.period_days)}'
+
     await cb.answer(text=text, show_alert=True)
+    message_part_who_done = ""
+    if cb.src['from']['id'] != chat.id:
+        message_part_who_done = f"\nby {cb.src['from']['username']}"
+    await bot.edit_message_text(
+        chat.id, chat.message['message_id'],
+        text=task.content
+             + f"\n\nСделано ️✅\n{task.last_done_time:%d.%m.%Y %H:%M}"
+             + message_part_who_done
+    )
 
 
 @bot.callback(r'time/(\d+)')

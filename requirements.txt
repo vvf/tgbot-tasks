@@ -3,3 +3,4 @@ aiomisc
 alembic==1.5.5
 gino==1.0.1
 SQLAlchemy==1.3.23
+psycopg2-binary
