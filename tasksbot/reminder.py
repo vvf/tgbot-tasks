@@ -26,7 +26,7 @@ def make_task_menu(task: Task):
 
 
 async def send_task_notify(task: Task, chat: Chat = None):
-    await bot.send_message(
+    message = await bot.send_message(
         task.chat_id, task.content,
         reply_to_message_id=task.message_id,
         reply_markup=make_task_menu(task)
@@ -36,6 +36,7 @@ async def send_task_notify(task: Task, chat: Chat = None):
         task.notify_time.time()
     )
     await task.update(
+        last_notify_id=str(message['result']['message_id']),
         notify_time=notify_time
     ).apply()
 
