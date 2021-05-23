@@ -1,12 +1,12 @@
 import asyncio
-import logging
 from datetime import datetime, timedelta, time
 from functools import partial
 
+from tasksbot.async_logger import get_async_logger
 from tasksbot.bot import bot
 from tasksbot.models import Task, Chat
 
-logger = logging.getLogger(__name__)
+async_logger = get_async_logger(__name__)
 loop = asyncio.get_event_loop()
 
 
@@ -28,7 +28,6 @@ def make_task_menu(task: Task):
 async def send_task_notify(task: Task, chat: Chat = None):
     message = await bot.send_message(
         task.chat_id, task.content,
-        reply_to_message_id=task.message_id,
         reply_markup=make_task_menu(task)
     )
     notify_time = datetime.combine(
@@ -42,7 +41,7 @@ async def send_task_notify(task: Task, chat: Chat = None):
 
 
 async def remind_all(n=0):
-    await loop.run_in_executor(None, partial(logger.info, "Check tasks to remind (%5d)", n))
+    async_logger.info("Check tasks to remind (%5d)", n)
     chats = await Chat.query.where(Chat.notify_next_date_time <= datetime.now()).gino.all()
     if not chats:
         return
@@ -56,6 +55,7 @@ async def remind_all(n=0):
         (Task.notify_time <= datetime.now()) &
         Task.exact_in_time
     ).gino.all()
+    async_logger.debug("Number of tasks to remind = %5d", len(tasks))
     if not tasks:
         await mark_chats_as_processed(chats)
         return
@@ -69,6 +69,7 @@ async def remind_all(n=0):
 
 async def mark_chats_as_processed(chats: list[Chat]):
     chat: Chat = None
+    async_logger.debug("Mark chats notify_next_date_time (chats count=%d)", len(chats))
     for chat in chats:
         notify_time = chat.notify_next_date_time.time()
         await chat.update(
@@ -77,3 +78,8 @@ async def mark_chats_as_processed(chats: list[Chat]):
                 notify_time
             )
         ).apply()
+        async_logger.debug(
+            "Chat %s: updated next notify time to '%s'",
+            chat.chat_name,
+            chat.notify_next_date_time.isoformat()
+        )
